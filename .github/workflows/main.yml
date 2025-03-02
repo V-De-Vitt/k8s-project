@@ -40,9 +40,9 @@ jobs:
           yc config set service-account-key ./key.json
           #yc config setup --non-interactive --api-key $YC_API_KEY
           yc compute instance list
-          yc managed-kubernetes cluster \
-           get-credentials k8s-platform \
-           --external
+          #yc managed-kubernetes cluster \
+          # get-credentials k8s-platform \
+          # --external
       - name: Install Helm
         run: |
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
