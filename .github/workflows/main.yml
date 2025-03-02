@@ -34,7 +34,9 @@ jobs:
       - name: Run Yandex Cloud CLI
         run: |
           yc config profile create sa-profile && yc config profile activate sa-profile
-          yc config set service-account-key $YC_API_KEY
+          cat >key.raw < <(echo "$YC_API_KEY")
+          cat >key.json <key.raw
+          yc config set service-account-key ./key.json
           #yc config setup --non-interactive --api-key $YC_API_KEY
           
       - name: Install Helm
