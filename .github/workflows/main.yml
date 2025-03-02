@@ -19,15 +19,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
+      #- name: Set up Python
+      #  uses: actions/setup-python@v4
+      #  with:
+      #    python-version: '3.x'
 
       - name: Install Yandex Cloud CLI
         run: |
-          pip install yandexcloud
+          #pip install yandexcloud
           #curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          curl https://storage.yandexcloud.net/yandexcloud-yc/install.sh | \
+            bash -s -- -a
           
       - name: Run Yandex Cloud CLI
         run: |
