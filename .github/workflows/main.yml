@@ -21,10 +21,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      #- name: Set up Python
-      #  uses: actions/setup-python@v4
-      #  with:
-      #    python-version: '3.x'
+      - name: Install kubectl
+        run: |
+          sudo apt-get update && sudo apt-get install -y apt-transport-https
+          curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+          echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+          sudo apt-get update
+          sudo apt-get install -y kubectl
 
       - name: Install Yandex Cloud CLI
         run: |
@@ -42,9 +45,9 @@ jobs:
           yc config set folder-id $YC_FOLDER_ID
           #yc config setup --non-interactive --api-key $YC_API_KEY
           yc compute instance list
-          #yc managed-kubernetes cluster \
-          # get-credentials k8s-platform \
-          # --external
+          yc managed-kubernetes cluster \
+           get-credentials k8s-platform \
+           --external
       - name: Install Helm
         run: |
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
