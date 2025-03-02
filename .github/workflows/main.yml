@@ -10,6 +10,7 @@ env:
   HELM_CHART_NAME: onlineboutique
   HELM_REPO_URL: ${{ secrets.HELM_REPO_URL }}
   YC_API_KEY: ${{ secrets.YC_API_KEY }}
+  YC_CLUSTER_NAME: ${{ secrets.YC_CLUSTER_NAME }}
 
 jobs:
   deploy:
@@ -38,7 +39,9 @@ jobs:
           cat >key.json <key.raw
           yc config set service-account-key ./key.json
           #yc config setup --non-interactive --api-key $YC_API_KEY
-          
+          yc managed-kubernetes cluster \
+           get-credentials $YC_CLUSTER_NAME \
+           --external
       - name: Install Helm
         run: |
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
