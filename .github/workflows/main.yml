@@ -40,7 +40,7 @@ jobs:
           yc config set service-account-key ./key.json
           #yc config setup --non-interactive --api-key $YC_API_KEY
           yc managed-kubernetes cluster \
-           get-credentials $YC_CLUSTER_NAME \
+           get-credentials k8s-platform \
            --external
       - name: Install Helm
         run: |
