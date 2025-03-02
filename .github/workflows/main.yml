@@ -1,0 +1,57 @@
+name: CI/CD for Online Boutique
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  HELM_CHART_NAME: onlineboutique
+  HELM_REPO_URL: ${{ secrets.HELM_REPO_URL }}
+  YC_API_KEY: ${{ secrets.YC_API_KEY }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      #- name: Set up Python
+      #  uses: actions/setup-python@v4
+      #  with:
+      #    python-version: '3.x'
+
+      - name: Install Yandex Cloud CLI
+        run: |
+          #pip install yandexcloud
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          yc config setup --non-interactive --api-key $YC_API_KEY
+
+      - name: Install Helm
+        run: |
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+
+      #- name: Add Helm repository
+      #  run: |
+      #    helm repo add my-repo $HELM_REPO_URL
+      #    helm repo update
+
+      - name: Deploy Helm chart
+        run: |
+          #helm upgrade onlineboutique oci://us-docker.pkg.dev/online-boutique-ci/charts/onlineboutique \
+          #  --install
+          helm upgrade $HELM_CHART_NAME $HELM_REPO_URL \
+            --install
+          #helm upgrade --install $HELM_CHART_NAME my-repo/$HELM_CHART_NAME \
+          #  --namespace online-boutique \
+          #  --create-namespace
+
+      - name: Verify deployment
+        run: |
+          kubectl get deployment frontend
+          #kubectl get pods -n online-boutique
