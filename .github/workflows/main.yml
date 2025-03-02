@@ -11,6 +11,7 @@ env:
   HELM_REPO_URL: ${{ secrets.HELM_REPO_URL }}
   YC_API_KEY: ${{ secrets.YC_API_KEY }}
   YC_CLUSTER_NAME: ${{ secrets.YC_CLUSTER_NAME }}
+  YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
 
 jobs:
   deploy:
@@ -38,6 +39,7 @@ jobs:
           cat >key.raw < <(echo "$YC_API_KEY")
           cat >key.json <key.raw
           yc config set service-account-key ./key.json
+          yc config set folder-id $YC_FOLDER_ID
           #yc config setup --non-interactive --api-key $YC_API_KEY
           yc compute instance list
           #yc managed-kubernetes cluster \
