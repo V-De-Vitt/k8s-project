@@ -27,17 +27,15 @@ jobs:
       - name: Install Yandex Cloud CLI
         run: |
           #pip install yandexcloud
-          #curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
-          #curl https://storage.yandexcloud.net/yandexcloud-yc/install.sh | \
-          #  bash -s -- -a
-          #source "/home/runner/.bashrc"
           sudo curl -f -s -LO https://storage.yandexcloud.net/yandexcloud-yc/install.sh
           sudo bash install.sh -i /usr/local/yandex-cloud -n
           sudo ln -sf /usr/local/yandex-cloud/bin/yc /usr/local/bin/yc
           
       - name: Run Yandex Cloud CLI
         run: |
-          yc config setup --non-interactive --api-key $YC_API_KEY
+          yc config profile create sa-profile && yc config profile activate sa-profile
+          yc config set service-account-key $YC_API_KEY
+          #yc config setup --non-interactive --api-key $YC_API_KEY
           
       - name: Install Helm
         run: |
