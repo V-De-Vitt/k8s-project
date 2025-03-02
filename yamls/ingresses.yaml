@@ -1,0 +1,93 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: promingress
+  namespace: monitoring
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: prom.k8s-devitt.ru
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: prometheus-prometheus-pushgateway
+                port:
+                  number: 9091
+            path: /
+  tls:
+  - hosts:
+    - prom.k8s-devitt.ru
+    secretName: prom-secret
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafanaingress
+  namespace: monitoring
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: grafana.k8s-devitt.ru
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80
+            path: /
+  tls:
+  - hosts:
+    - grafana.k8s-devitt.ru
+    secretName: grafana-secret
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: obingress
+#  namespace: monitoring
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: k8s-devitt.ru
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: frontend-external
+                port:
+                  number: 8080
+            path: /
+  tls:
+  - hosts:
+    - k8s-devitt.ru
+    secretName: ob-secret
+
+    # This section is only required if TLS is to be enabled for the Ingress
+ #   tls:
+ #     - hosts:
+ #       - www.example.com
+ #       secretName: example-tls
+
+#If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+
+#  apiVersion: v1
+#  kind: Secret
+#  metadata:
+#    name: example-tls
+#    namespace: foo
+#  data:
+#    tls.crt: <base64 encoded cert>
+#    tls.key: <base64 encoded key>
+#  type: kubernetes.io/tls

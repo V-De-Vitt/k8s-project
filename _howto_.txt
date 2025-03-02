@@ -1,0 +1,128 @@
+#https://yandex.cloud/en-ru/docs/tutorials/infrastructure-management/terraform-quickstart#console_1
+# create sa in YC
+yc iam key create \
+  --service-account-id <service_account_ID> \
+  --folder-name <service_account_folder_name> \
+  --output key.json
+
+#id: aje8nn871qo4********
+#service_account_id: ajehr0to1g8********
+#created_at: "2022-09-14T09:11:43.479156798Z"
+#key_algorithm: RSA_2048
+
+yc config profile create <profile_name>
+
+yc config set service-account-key key.json
+yc config set cloud-id <cloud_ID>
+yc config set folder-id <folder_ID>
+
+export YC_TOKEN=$(yc iam create-token)
+export YC_CLOUD_ID=$(yc config get cloud-id)
+export YC_FOLDER_ID=$(yc config get folder-id)
+
+# config terraform
+nano ~/.terraformrc
+
+# add following lines
+provider_installation {
+  network_mirror {
+    url = "https://terraform-mirror.yandexcloud.net/"
+    include = ["registry.terraform.io/*/*"]
+  }
+  direct {
+    exclude = ["registry.terraform.io/*/*"]
+  }
+}
+
+# add following to main.tf
+
+terraform {
+  required_providers {
+    yandex = {
+      source = "yandex-cloud/yandex"
+    }
+  }
+  required_version = ">= 0.13"
+}
+
+provider "yandex" {
+  zone = "<default_availability_zone>"
+}
+
+# init terraform
+terraform init
+
+# fill tf files
+
+# validate terraform
+terraform validate
+
+# create terraform plan
+terraform plan
+
+# apply terraform
+terraform apply
+
+# after completed - destroy resources
+terraform destroy
+
+# install csi s3 provider
+helm pull oci://cr.yandex/yc-marketplace/yandex-cloud/csi-s3/csi-s3 \
+  --version 0.42.1 \
+  --untar && \
+helm install \
+  --namespace kube-system \
+  --set secret.accessKey=YCredacted \
+  --set secret.secretKey=YCredacted \
+  csi-s3 ./csi-s3/
+
+kubectl apply -f s3-credentials.yaml
+kubectl apply -f storageclass.yaml
+
+# install prometheus, grafana and loki
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#helm repo add loki https://grafana.github.io/loki-helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+
+# Create s3 bucket - my-k8s-logs
+
+helm install prometheus prometheus-community/prometheus --namespace monitoring --create-namespace
+helm install loki oci://registry-1.docker.io/bitnamicharts/grafana-loki -n monitoring
+#helm install loki grafana/loki -f loki-values.yaml  --namespace monitoring
+helm install grafana grafana/grafana   --namespace monitoring  --set "admin.password=password"   --set persistence.enabled=true   --set persistence.size=5G
+helm install ingress-nginx ingress-nginx/ingress-nginx
+helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager --create-namespace \
+  --version v1.17.1 \
+  --set installCRDs=true
+
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+# Online Butique
+helm upgrade onlineboutique oci://us-docker.pkg.dev/online-boutique-ci/charts/onlineboutique \
+    --install
+
+# Online Butique advanced setup
+helm upgrade onlineboutique oci://us-docker.pkg.dev/online-boutique-ci/charts/onlineboutique \
+    --install \
+    --create-namespace \
+    --set images.repository=us-docker.pkg.dev/my-project/microservices-demo \
+    --set frontend.externalService=false \
+    --set redis.create=false \
+    --set cartservice.database.type=spanner \
+    --set cartservice.database.connectionString=projects/my-project/instances/onlineboutique/databases/carts \
+    --set serviceAccounts.create=true \
+    --set authorizationPolicies.create=true \
+    --set networkPolicies.create=true \
+    --set sidecars.create=true \
+    --set frontend.virtualService.create=true \
+    --set 'serviceAccounts.annotations.iam\.gke\.io/gcp-service-account=spanner-db-user@my-project.iam.gserviceaccount.com' \
+    --set serviceAccounts.annotationsOnlyForCartservice=true \
+    -n onlineboutique
+
+# get letsencrypt certs
+kubectl apply -f letsencrypt-production.yaml
+kubectl apply -f ingresses.yaml
