@@ -19,19 +19,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      #- name: Set up Python
-      #  uses: actions/setup-python@v4
-      #  with:
-      #    python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
       - name: Install Yandex Cloud CLI
         run: |
-          #pip install yandexcloud
-          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+          pip install yandexcloud
+          #curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
           
       - name: Run Yandex Cloud CLI
         run: |
           yc config setup --non-interactive --api-key $YC_API_KEY
+          
       - name: Install Helm
         run: |
           curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
