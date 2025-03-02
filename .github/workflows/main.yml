@@ -39,6 +39,7 @@ jobs:
           cat >key.json <key.raw
           yc config set service-account-key ./key.json
           #yc config setup --non-interactive --api-key $YC_API_KEY
+          yc compute instance list
           yc managed-kubernetes cluster \
            get-credentials k8s-platform \
            --external
